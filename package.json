@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@types/node": "^12.7.8",
+    "dayjs": "^1.8.16",
+    "showdown": "^1.9.0"
+  }
+}
