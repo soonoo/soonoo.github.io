@@ -12,7 +12,7 @@ createdAt: 2019.09.29
 이해하는 데에 생각보다 시간이 조금 더 걸리긴 했지만 [PR](https://github.com/nodegui/nodegui/pull/118)을 보내자마자 코드 리뷰와 함께 머지를 해주었다. 
 재미있었던 점은 별거 아닌 내용이었지만 저장소 주인으로 추정되는 [atul](https://github.com/master-atul)이 `great`, `awesome`, `amazing stuff`같은 화려한 수식어를 덧붙여 가며 반응을 해주었다는 점이다. (시간 나면 API 문서화도 부탁한다는 코멘트와 함께)
 
-![atul's review](https://soonoo.me/images/atul-review.png)
+![atul's review](/docs/images/atul-review.png)
 
 얼마 뒤에 [reddit](https://github.com/nodegui/nodegui/pull/118)에 atul이 '나 이런 프로젝트 하고 있는데 와서 같이 개발하지 않을래?'라며 올린 홍보용 포스트를 발견했다. 포스트에 대한 반응도 뜨거웠고 저장소 스타도 3,000개 이상 받았지만 대부분 '오 쩐다. 프로젝트 완성되면 한번 써봐야 겠는데?' 정도의 의견이 대부분이었고 실제로 저장소의 contributor는 10명 남짓이었다. 
 
