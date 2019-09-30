@@ -12,7 +12,9 @@
   },
   "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "gen": "tsc gen.ts && HOST=http://localhost:8080 node gen.js",
+    "gen:prod": "tsc gen.ts && HOST=https://soonoo.me node gen.js"
   },
   "repository": {
     "type": "git",
