@@ -60,5 +60,12 @@ for(const markdownPath of readdirSync(markdownDirectory)) {
   } catch(e) {
     console.error(e);
   }
+
+  try {
+    const sitemapContent = posts.map(post => post.path).reduce((acc, cur) => acc + HOST + cur + '\n', '');
+    writeFileSync(__dirname + '/docs/sitemap.txt', sitemapContent, 'utf8');
+  } catch(e) {
+    console.error(e);
+  }
 }
 
