@@ -4,6 +4,7 @@ import * as dayjs from 'dayjs';
 
 const converter = new showdown.Converter({ metadata: true });
 
+const { HOST } = process.env;
 const profileImage = 'https://avatars0.githubusercontent.com/u/5436405?s=460&v=4';
 const posts = [];
 const markdownDirectory = './markdown/';
@@ -17,7 +18,6 @@ for(const markdownPath of readdirSync(markdownDirectory)) {
     const htmlPath = '/docs/posts/' + dayjs(createdAt).format('YYYY/MM/DD');
     const fullHtmlPath = __dirname + htmlPath;
     const fileName = markdownPath.replace('.md', '.html');
-    console.log(htmlPath)
 
     mkdirSync(fullHtmlPath, { recursive: true });
     let replacedHtml = template.replace('$$title', title);
@@ -26,6 +26,7 @@ for(const markdownPath of readdirSync(markdownDirectory)) {
     replacedHtml = replacedHtml.replace('$$og:title', ogTitle || title || 'soonoo.me');
     replacedHtml = replacedHtml.replace('$$og:description', ogDescription || description || title);
     replacedHtml = replacedHtml.replace('$$og:image', ogImage || profileImage);
+    replacedHtml = replacedHtml.replace('$$HOST', HOST || 'https://soonoo.me');
 
     posts.push({
       date: dayjs(createdAt).format('YYYY-MM'),
@@ -54,6 +55,7 @@ for(const markdownPath of readdirSync(markdownDirectory)) {
     template = template.replace('$$og:description', '일기장 겸 블로그');
     template = template.replace('$$og:image', profileImage);
     template = template.replace('$$content', listHtml);
+    template = template.replace('$$HOST', HOST || 'https://soonoo.me');
     writeFileSync(__dirname + '/index.html', template, 'utf8');
   } catch(e) {
     console.error(e);
