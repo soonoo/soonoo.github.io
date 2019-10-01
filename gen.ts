@@ -27,6 +27,15 @@ for(const markdownPath of readdirSync(markdownDirectory)) {
     replacedHtml = replacedHtml.replace('$$og:description', ogDescription || description || title);
     replacedHtml = replacedHtml.replace('$$og:image', ogImage || profileImage);
     replacedHtml = replacedHtml.replace('$$HOST', HOST || 'https://soonoo.me');
+    replacedHtml = replacedHtml.replace('$$github-comments', `
+      <script src="https://utteranc.es/client.js"
+        repo="soonoo/soonoo.github.io"
+        issue-term="pathname"
+        theme="github-light"
+        crossorigin="anonymous"
+        async>
+      </script>
+    `);
 
     posts.push({
       date: dayjs(createdAt).format('YYYY-MM'),
@@ -56,6 +65,7 @@ for(const markdownPath of readdirSync(markdownDirectory)) {
     template = template.replace('$$og:image', profileImage);
     template = template.replace('$$content', listHtml);
     template = template.replace('$$HOST', HOST || 'https://soonoo.me');
+    template = template.replace('$$github-comments', '');
     writeFileSync(__dirname + '/index.html', template, 'utf8');
   } catch(e) {
     console.error(e);
