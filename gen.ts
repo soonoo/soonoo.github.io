@@ -50,7 +50,9 @@ for(const markdownPath of readdirSync(markdownDirectory)) {
   try {
     let template = readFileSync('template.html', 'utf8');
     let listHtml = '';
-    for(const post of posts) {
+    const compareDate = (a, b) => Number(new Date(b.date)) - Number(new Date(a.date));
+
+    for(const post of posts.sort(compareDate)) {
       listHtml += `
         <div class='mainPostLink'>
           <span class='mainPostLinkDate'>${post.date}</span><a href='${post.path}'>${post.title}</a>
