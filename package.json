@@ -10,11 +10,15 @@
   "directories": {
     "doc": "docs"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "http-server": "^0.11.1",
+    "nodemon": "^2.0.1"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "gen": "tsc gen.ts && HOST=http://localhost:8080 node gen.js",
-    "gen:prod": "tsc gen.ts && HOST=https://soonoo.me node gen.js"
+    "gen:prod": "tsc gen.ts && HOST=https://soonoo.me node gen.js",
+    "dev": "http-server & nodemon --exec 'yarn gen' -e ts,md"
   },
   "repository": {
     "type": "git",
