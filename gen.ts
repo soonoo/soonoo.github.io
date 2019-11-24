@@ -38,7 +38,7 @@ for(const markdownPath of readdirSync(markdownDirectory)) {
     `);
 
     posts.push({
-      date: dayjs(createdAt).format('YYYY-MM'),
+      date: dayjs(createdAt).format('YYYY-MM-DD'),
       title,
       path: htmlPath + '/' + fileName,
     });
