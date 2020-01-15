@@ -50,7 +50,7 @@ for(const markdownPath of readdirSync(markdownDirectory)) {
   try {
     let template = readFileSync('template.html', 'utf8');
     let listHtml = '';
-    const compareDate = (a, b) => Number(new Date(b.date)) - Number(new Date(a.date));
+    const compareDate = (a, b) => dayjs(a.date).isAfter(dayjs(b.date)) ? -1 : 1;
 
     for(const post of posts.sort(compareDate)) {
       listHtml += `
