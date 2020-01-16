@@ -8,7 +8,7 @@ createdAt: 2020.01.16
 
 ## 동시성, 병렬성
 Rob Pike가 설명하는 concurrency와 parallelism  
-[출처] [https://blog.golang.org/concurrency-is-not-parallelism](https://github.com/golang/go/blob/master/src/runtime/proc.go)  
+[출처] [https://blog.golang.org/concurrency-is-not-parallelism](https://blog.golang.org/concurrency-is-not-parallelism)  
 #### 동시성(Concurrency)
 - 독립적으로 실행 중인 프로세스(작업) 들을 결합(composition)하는 행위.
 - 여러 개의 작업을 '다루는' 것에 관한 개념.
@@ -35,5 +35,5 @@ ex) 두 개의 코어가 각기 다른 스레드/프로세스를 실행.
 Go 스케줄러는 매 라운드마다 실행 가능한 Goroutine을 찾아 스레드에 할당한다. Go runtime이 생성하는 스레드의 수는 `GOMAXPROCS` 환경 변수에 의해 결정됨. 하지만 실제로 생성되는 스레드는 `GOMAXPROCS`보다 많을 수 있음. `GOMAXPROCS`는 CPU 코어의 수로 초기화되지만 런타임에 변경할 수 있음. (`GOMAXPROCS`가 정확히 어떻게 사용되는지 잘 모르겠다. 소스 코드에 답이 있을테지만 볼 용기가 안난다.)  
 Goroutine이 새로 생성되거나 실행 가능한 상태가 되면 각 코어의 local queue에 추가됨. 각 코어는 큐에서 실행 가능한 Goroutine을 찾아서 실행하고 실행이 끝난 Goroutine은 큐에서 제거함. 큐에서 실행 가능한 Goroutine을 찾지 못할 경우 다른 코어의 큐에서 Goroutine을 훔쳐옴(?!) 이를 [work-stealing](https://en.wikipedia.org/wiki/Work_stealing) 스케줄링 방식이라고 함.  
 [출처]  
-[https://rakyll.org/scheduler/](https://github.com/golang/go/blob/master/src/runtime/proc.go)  
+[https://rakyll.org/scheduler/](https://rakyll.org/scheduler/)  
 [https://github.com/golang/go/blob/master/src/runtime/proc.go](https://github.com/golang/go/blob/master/src/runtime/proc.go)
