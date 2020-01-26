@@ -1,0 +1,141 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Go 인터페이스 구현 시 메서드의 리시버 타입이 중요한 이유</title>
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-60171962-4"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-60171962-4');
+    </script>
+    <!-- Google Analytics -->
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel='stylesheet' type='text/css' href='https://soonoo.me/docs/style/style.css'>
+    <link rel='shortcut icon' href='https://avatars0.githubusercontent.com/u/5436405?s=460&v=4'>
+    <meta name='description' content='동시성, 병렬성 그리고 Go에 대해 알게된 내용들'>
+    <meta property='og:title' content='Go 인터페이스 구현 시 메서드의 리시버 타입이 중요한 이유'>
+    <meta property='og:description' content='동시성, 병렬성 그리고 Go에 대해 알게된 내용들'>
+    <meta property='og:image' content='https://avatars0.githubusercontent.com/u/5436405?s=460&v=4'>
+  </head>
+
+  <body>
+    <div class='contentWrap'>
+
+      <!-- start of profile -->
+      <div class='profileWrap'>
+        <div class='profileImgWrap'>
+          <a href='/'><img class='profileImg' src='https://avatars0.githubusercontent.com/u/5436405?s=460&v=4' /></a>
+        </div>
+        <div class='profileDescWrap'>
+          <div class='profileNameWrap'>
+            <div class='profileNameKo'>홍순우</div>
+            <div class='profileNameEn'>Soonwoo Hong</div>
+          </div>
+          <div class='profileLinkWrap'>
+            <span class='profileLink'><a target='_blank' href='https://github.com/soonoo'>GitHub</a></span>
+            <span class='profileLink'><a target='_blank' href='https://committrs.io/soonoo'>committrs.io</a></span>
+            <span class='profileLink'><a target='_blank' href='mailto:qpseh2m7@gmail.com'>email</a></span>
+          </div>
+        </div>
+      </div>
+      <!-- end of profile -->
+
+      <!-- start of content -->
+      <div id='mainWrap'>
+        <h1 id="go">Go 인터페이스 구현 시 메서드의 리시버 타입에 관한 질문과 답변</h1>
+<p>Go에서 인터페이스를 구현하기 위해서는 해당 인터페이스가 포함하고 있는 메서드를 구현하면 된다. 이 때 구현하는 메서드의 리시버 타입이 값이든 포인터든 상관 없다.</p>
+<pre><code class="Go language-Go">type I interface {
+  m()
+}
+
+type S struct {
+  val string
+}
+
+// 아래 두 개의 구현 중 어느 것을 사용해도 문제 없음.
+func (s S) m() {}
+func (s *S) m() {}
+</code></pre>
+<p><br>
+<br>
+하지만 인터페이스 타입의 변수에 해당 인터페이스의 구현체를 할당하게 되면 리시버의 타입이 중요해진다.</p>
+<h5 id="1">1. 컴파일 가능한 코드:</h5>
+<pre><code class="Go language-Go">func (s S) m() {}
+var i I = S{}
+</code></pre>
+<h5 id="2">2. 컴파일 가능한 코드:</h5>
+<pre><code class="Go language-Go">func (s S) m() {}
+var i I = &amp;S{}
+</code></pre>
+<h5 id="3">3. 컴파일 가능한 코드:</h5>
+<pre><code class="Go language-Go">func (s *S) m() {}
+var i I = &amp;S{}
+</code></pre>
+<h5 id="4">4. 컴파일 <code>불가능한</code> 코드:</h5>
+<pre><code class="Go language-Go">func (s *S) m() {}
+var i I = S{} // compile error
+</code></pre>
+<p><br>
+1번과 2번 코드는 리시버 타입이 non-pointer로 선언되어 있다. 따라서 메서드 <code>m</code>을 호출하면 인터페이스 타입의 변수 <code>i</code>가 담고 있는 값 <code>S</code>의 복사본이 전달된다.<br />
+3번과 4번 코드는 리시버 타입이 포인터라는 것만 제외하면 1, 2번과 동일하다. 그러므로 <code>S</code>를 복사하는 대신 <code>S</code>의 주소가 함수 호출 시 전달된다.
+<br>
+주소를 참조하기 위해서는 &amp; 연산자를 이용한다. 하지만 4번 코드의 변수 <code>i</code>는 주소를 참조할 수 없다. 인터페이스 타입의 변수가 담고 있는 구현체의 값은 addressable하지 않기 때문이다.<br />
+[출처] <a href="https://github.com/golang/go/wiki/MethodSets#interfaces">https://github.com/golang/go/wiki/MethodSets#interfaces</a></p>
+<p><br></p>
+<h3 id="addressable">addressable 개념</h3>
+<p>Go에는 addressable value라는 개념이 존재한다. 말 그대로 <a href="https://golang.org/ref/spec#Address_operators">address operator</a>(&amp;)로 주소를 참조할 수 있는 값을 의미한다.<br />
+예를 들어 Go에서 함수는 addressable하지 않으므로 &amp; 연산자를 사용할 수 없다.</p>
+<pre><code class="Go language-Go">package main
+
+import "fmt"
+
+func main() {
+    &amp;fmt.Println
+}
+// compile error: cannot take the address of fmt.Println
+</code></pre>
+<p><br>
+인터페이스 타입의 변수가 담고 있는 값이 addressable하다면 다음과 같은 문제가 발생한다.<br />
+[출처] <a href="https://stackoverflow.com/questions/48790663/why-value-stored-in-an-interface-is-not-addressable-in-golang">https://stackoverflow.com/questions/48790663/why-value-stored-in-an-interface-is-not-addressable-in-golang</a></p>
+<pre><code class="Go language-Go">type I interface{}
+type A int
+type B string
+
+var a A = 5
+var i I = a
+
+// A 타입의 포인터 변수가 인터페이스 I의 값을 가리키도록 함.
+var aPtr *A
+aPtr = &amp;(i.(A)) // 인터페이스가 담고있는 값은 addressable하지 않으므로 실제로는 컴파일되지 않는 코드!
+
+// B 타입의 변수를 선언하고 i에 새로 만들어진 변수를 할당함.
+// aPtr은 원래 A 타입 변수의 포인터이지만 B 타입 변수를 가리키게 됨. 따라서 aPtr의 타입에 위반이 일어나게 됨.
+// (따라서 인터페이스가 담고있는 값은 addressable하지 않음)
+var b B = "hello"
+i = b
+</code></pre>
+      </div>
+      <!-- end of content -->
+
+      
+      <script src="https://utteranc.es/client.js"
+        repo="soonoo/soonoo.github.io"
+        issue-term="pathname"
+        theme="github-light"
+        crossorigin="anonymous"
+        async>
+      </script>
+    
+
+      <footer>
+        <p class='footerItem'>Made by soonoo</p>
+        <p class='footerItem'>Hosted on GitHub.com</p>
+      </footer>
+    </div>
+  </body>
+</html>
