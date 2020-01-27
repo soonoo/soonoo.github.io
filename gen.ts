@@ -2,7 +2,7 @@ import * as showdown from 'showdown';
 import { readFileSync, readdirSync, writeFileSync, mkdirSync } from 'fs';
 import * as dayjs from 'dayjs';
 
-const converter = new showdown.Converter({ metadata: true });
+const converter = new showdown.Converter({ metadata: true, rawHeaderId: true });
 
 const { HOST } = process.env;
 const profileImage = 'https://avatars0.githubusercontent.com/u/5436405?s=460&v=4';
