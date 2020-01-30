@@ -23,11 +23,6 @@ for(const markdownPath of readdirSync(markdownDirectory)) {
     const fileName = markdownPath.replace('.md', '.html');
     const revisedTags = tags.split(',').map(t => t.trim());
 
-    for(const t of revisedTags) {
-      if(tagsInfo[t]) tagsInfo[t].push(htmlPath + '/' + fileName);
-      else tagsInfo[t] = [htmlPath + '/' + fileName]
-    }
-
     mkdirSync(fullHtmlPath, { recursive: true });
     let replacedHtml = template.replace('$$title', title);
     replacedHtml = replacedHtml.replace('$$description', description || ogDescription || title);
@@ -36,6 +31,7 @@ for(const markdownPath of readdirSync(markdownDirectory)) {
     replacedHtml = replacedHtml.replace('$$og:description', ogDescription || description || title);
     replacedHtml = replacedHtml.replace('$$og:image', ogImage || profileImage);
     replacedHtml = replacedHtml.replace('$$HOST', HOST || 'https://soonoo.me');
+    replacedHtml = replacedHtml.replace('$$tags', '');
     replacedHtml = replacedHtml.replace('$$github-comments', `
       <script src="https://utteranc.es/client.js"
         repo="soonoo/soonoo.github.io"
@@ -46,11 +42,17 @@ for(const markdownPath of readdirSync(markdownDirectory)) {
       </script>
     `);
 
-    posts.push({
+    const post = {
       date: dayjs(createdAt).format('YYYY-MM-DD'),
       title,
       path: htmlPath + '/' + fileName,
-    });
+    };
+    posts.push(post);
+    for(const t of revisedTags) {
+      if(tagsInfo[t]) tagsInfo[t].push(post);
+      else tagsInfo[t] = [post]
+    }
+
     writeFileSync(fullHtmlPath + '/' + fileName, replacedHtml, 'utf8');
   } catch(e) {
     console.error(e);
@@ -80,12 +82,9 @@ try {
   template = template.replace('$$github-comments', '');
   let tagString = ''
   for(const t of Object.keys(tagsInfo)) {
-    console.log(tagsInfo[t])
-    tagString += `<span><a href='/docs/tags/${t}.html'>${t}</a></span>`;
+    tagString += `<span><a class='tag' href='/docs/tags/${t}.html'>${t}</a></span>`;
   }
-  template = template.replace('$$tags',
-    `<span>${tagString}</span>`
-  );
+  template = template.replace('$$tags', `tags: ${tagString}`);
   writeFileSync(__dirname + '/index.html', template, 'utf8');
 } catch(e) {
   console.error(e);
@@ -100,26 +99,28 @@ try {
 
 for(const t of Object.keys(tagsInfo)) {
   try {
+    const title = `${t} 태그가 달린 글`;
     let template = readFileSync('template.html', 'utf8');
     let listHtml = '';
     const compareDate = (a, b) => dayjs(a.date).isAfter(dayjs(b.date)) ? -1 : 1;
 
-    for(const url of tagsInfo[t]) {
+    for(const post of tagsInfo[t]) {
       listHtml += `
         <div class='mainPostLink'>
-          <span class='mainPostLinkDate'>${3}</span><a href='${url}'>${url}</a>
+          <span class='mainPostLinkDate'>${post.date}</span><a href='${post.path}'>${post.title}</a>
         </div>
       `;
     }
 
-    template = template.replace('$$title', 'soonoo.me');
+    template = template.replace('$$title', title);
     template = template.replace('$$description', '순우 블로그');
-    template = template.replace('$$og:title', 'soonoo.me');
+    template = template.replace('$$og:title', title);
     template = template.replace('$$og:description', '일기장 겸 블로그');
     template = template.replace('$$og:image', profileImage);
     template = template.replace('$$content', listHtml);
     template = template.replace('$$HOST', HOST || 'https://soonoo.me');
     template = template.replace('$$github-comments', '');
+    template = template.replace('$$tags', title);
     writeFileSync(__dirname + '/docs/tags/' + t + '.html', template, 'utf8');
   } catch(e) {
     console.error(e);

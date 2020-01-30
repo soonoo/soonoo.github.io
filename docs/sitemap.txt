@@ -1,5 +1,5 @@
-https://soonoo.me/docs/posts/2020/01/26/Go-interface-receiver-type.html
-https://soonoo.me/docs/posts/2020/01/16/Go-concurrency.html
-https://soonoo.me/docs/posts/2019/11/24/committrs-advertisement.html
-https://soonoo.me/docs/posts/2019/10/27/Linux-contributor-wannabe.html
-https://soonoo.me/docs/posts/2019/09/29/GitHub-foreign-friends.html
+http://localhost:8080/docs/posts/2020/01/26/Go-interface-receiver-type.html
+http://localhost:8080/docs/posts/2020/01/16/Go-concurrency.html
+http://localhost:8080/docs/posts/2019/11/24/committrs-advertisement.html
+http://localhost:8080/docs/posts/2019/10/27/Linux-contributor-wannabe.html
+http://localhost:8080/docs/posts/2019/09/29/GitHub-foreign-friends.html

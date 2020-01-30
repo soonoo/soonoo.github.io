@@ -2,6 +2,7 @@
 title: GitHub에서 외국인 친구 만들기
 description: 스웨덴에 사는 인도 개발자와 대화하기
 createdAt: 2019.09.29
+tags: GitHub, 오픈소스
 ---
 
 # GitHub에서 외국인 친구 만들기

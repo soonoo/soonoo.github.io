@@ -2,6 +2,7 @@
 title: committrs 소개
 description: 공개 SW 개발자대회 출품기
 createdAt: 2019.11.24
+tags: committrs,오픈소스
 ---
 
 # committrs 소개
