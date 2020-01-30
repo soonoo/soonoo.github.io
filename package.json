@@ -18,7 +18,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "gen": "tsc gen.ts && HOST=http://localhost:8080 node gen.js",
     "gen:prod": "tsc gen.ts && HOST=https://soonoo.me node gen.js",
-    "dev": "http-server & nodemon --exec 'yarn gen' -e ts,md,css -w template.html"
+    "dev": "http-server & nodemon --exec 'yarn gen' -e ts,md,css -w template.html -w gen.ts"
   },
   "repository": {
     "type": "git",

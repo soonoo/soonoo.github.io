@@ -8,16 +8,25 @@ const { HOST } = process.env;
 const profileImage = 'https://avatars0.githubusercontent.com/u/5436405?s=460&v=4';
 const posts = [];
 const markdownDirectory = './markdown/';
+const tagsDirectory = './tags/';
+const tagsInfo = {};
+
 for(const markdownPath of readdirSync(markdownDirectory)) {
   try {
     const template = readFileSync('template.html', 'utf8');
     const markdownFile = readFileSync(markdownDirectory + markdownPath, 'utf8');
 
     const markdownContent = converter.makeHtml(markdownFile);
-    const { title, description, createdAt, ogTitle, ogDescription, ogImage } = converter.getMetadata();
+    const { title, description, createdAt, ogTitle, ogDescription, ogImage, tags } = converter.getMetadata();
     const htmlPath = '/docs/posts/' + dayjs(createdAt).format('YYYY/MM/DD');
     const fullHtmlPath = __dirname + htmlPath;
     const fileName = markdownPath.replace('.md', '.html');
+    const revisedTags = tags.split(',').map(t => t.trim());
+
+    for(const t of revisedTags) {
+      if(tagsInfo[t]) tagsInfo[t].push(htmlPath + '/' + fileName);
+      else tagsInfo[t] = [htmlPath + '/' + fileName]
+    }
 
     mkdirSync(fullHtmlPath, { recursive: true });
     let replacedHtml = template.replace('$$title', title);
@@ -46,16 +55,59 @@ for(const markdownPath of readdirSync(markdownDirectory)) {
   } catch(e) {
     console.error(e);
   }
+}
 
+try {
+  let template = readFileSync('template.html', 'utf8');
+  let listHtml = '';
+  const compareDate = (a, b) => dayjs(a.date).isAfter(dayjs(b.date)) ? -1 : 1;
+
+  for(const post of posts.sort(compareDate)) {
+    listHtml += `
+        <div class='mainPostLink'>
+          <span class='mainPostLinkDate'>${post.date}</span><a href='${post.path}'>${post.title}</a>
+        </div>
+      `;
+  }
+
+  template = template.replace('$$title', 'soonoo.me');
+  template = template.replace('$$description', '순우 블로그');
+  template = template.replace('$$og:title', 'soonoo.me');
+  template = template.replace('$$og:description', '일기장 겸 블로그');
+  template = template.replace('$$og:image', profileImage);
+  template = template.replace('$$content', listHtml);
+  template = template.replace('$$HOST', HOST || 'https://soonoo.me');
+  template = template.replace('$$github-comments', '');
+  let tagString = ''
+  for(const t of Object.keys(tagsInfo)) {
+    console.log(tagsInfo[t])
+    tagString += `<span><a href='/docs/tags/${t}.html'>${t}</a></span>`;
+  }
+  template = template.replace('$$tags',
+    `<span>${tagString}</span>`
+  );
+  writeFileSync(__dirname + '/index.html', template, 'utf8');
+} catch(e) {
+  console.error(e);
+}
+
+try {
+  const sitemapContent = posts.map(post => post.path).reduce((acc, cur) => acc + HOST + cur + '\n', '');
+  writeFileSync(__dirname + '/docs/sitemap.txt', sitemapContent, 'utf8');
+} catch(e) {
+  console.error(e);
+}
+
+for(const t of Object.keys(tagsInfo)) {
   try {
     let template = readFileSync('template.html', 'utf8');
     let listHtml = '';
     const compareDate = (a, b) => dayjs(a.date).isAfter(dayjs(b.date)) ? -1 : 1;
 
-    for(const post of posts.sort(compareDate)) {
+    for(const url of tagsInfo[t]) {
       listHtml += `
         <div class='mainPostLink'>
-          <span class='mainPostLinkDate'>${post.date}</span><a href='${post.path}'>${post.title}</a>
+          <span class='mainPostLinkDate'>${3}</span><a href='${url}'>${url}</a>
         </div>
       `;
     }
@@ -68,7 +120,7 @@ for(const markdownPath of readdirSync(markdownDirectory)) {
     template = template.replace('$$content', listHtml);
     template = template.replace('$$HOST', HOST || 'https://soonoo.me');
     template = template.replace('$$github-comments', '');
-    writeFileSync(__dirname + '/index.html', template, 'utf8');
+    writeFileSync(__dirname + '/docs/tags/' + t + '.html', template, 'utf8');
   } catch(e) {
     console.error(e);
   }
@@ -80,4 +132,3 @@ for(const markdownPath of readdirSync(markdownDirectory)) {
     console.error(e);
   }
 }
-
