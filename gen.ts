@@ -82,7 +82,7 @@ try {
   template = template.replace('$$github-comments', '');
   let tagString = ''
   for(const t of Object.keys(tagsInfo)) {
-    tagString += `<span><a class='tag' href='/docs/tags/${t}.html'>${t}</a></span>`;
+    tagString += `<a class='tag' href='/docs/tags/${t}.html'>${t}</a>`;
   }
   template = template.replace('$$tags', `tags: ${tagString}`);
   writeFileSync(__dirname + '/index.html', template, 'utf8');

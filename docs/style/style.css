@@ -22,9 +22,9 @@ pre { overflow-x: auto; background: #eee; }
 .centered { display: flex; justify-content: center; }
 ol, ul { font-style: italic; }
 .tag { padding: 3px 6px; background-color: #ddd; margin: 0 5px; border-radius: 2px; }
-.tag, .tag:visited { text-decoration: none; color: black; }
-.tag:hover { transition: all .7s; background-color: #bbb; text-decoration: none; }
-.tagsWrap { margin-bottom: 30px; }
+.tag, .tag:visited { text-decoration: none; color: #555; display: inline-block; margin-bottom: 5px; }
+.tag:hover { transition: all .2s; background-color: #bbb; text-decoration: none; color: black; }
+.tagsWrap { margin-bottom: 24px; }
 
 @media (min-width: 600px) {
   .mainPostLink { font-size: 18px; }
