@@ -1,0 +1,127 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Nginx reload와 HTTP/1.1의 Connection 헤더</title>
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-60171962-4"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-60171962-4');
+    </script>
+    <!-- Google Analytics -->
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel='stylesheet' type='text/css' href='https://soonoo.me/docs/style/style.css'>
+    <link rel='shortcut icon' href='https://avatars0.githubusercontent.com/u/5436405?s=460&v=4'>
+    <meta name='description' content='Nginx reload와 HTTP/1.1의 Connection 헤더'>
+    <meta property='og:title' content='Nginx reload와 HTTP/1.1의 Connection 헤더'>
+    <meta property='og:description' content='Nginx reload와 HTTP/1.1의 Connection 헤더'>
+    <meta property='og:image' content='https://avatars0.githubusercontent.com/u/5436405?s=460&v=4'>
+  </head>
+
+  <body>
+    <div class='contentWrap'>
+
+      <!-- start of profile -->
+      <div class='profileWrap'>
+        <div class='profileImgWrap'>
+          <a href='/'><img class='profileImg' src='https://avatars0.githubusercontent.com/u/5436405?s=460&v=4' /></a>
+        </div>
+        <div class='profileDescWrap'>
+          <div class='profileNameWrap'>
+            <div class='profileNameKo'>홍순우</div>
+            <div class='profileNameEn'>Soonwoo Hong</div>
+          </div>
+          <div class='profileLinkWrap'>
+            <span class='profileLink'><a target='_blank' href='https://github.com/soonoo'>GitHub</a></span>
+            <span class='profileLink'><a target='_blank' href='https://committrs.io/soonoo'>committrs.io</a></span>
+            <span class='profileLink'><a target='_blank' href='mailto:qpseh2m7@gmail.com'>email</a></span>
+          </div>
+        </div>
+      </div>
+      <!-- end of profile -->
+
+      <div class='tagsWrap'>
+        
+      </div>
+      <!-- start of content -->
+      <div id='mainWrap'>
+        <h1 id="nginx-reload와-http/1.1의-connection-헤더">Nginx reload와 HTTP/1.1의 Connection 헤더</h1>
+<p><a href="https://martinfowler.com/bliki/BlueGreenDeployment.html">Blue-Green 배포 방법</a>을 이용하면 서비스 중단 시간을 최소화하면서 배포를 진행할 수 있다. blue-green 배포에 관한 설명은 웹에서 쉽게 찾아 볼 수 있으므로 배포 과정 중에 겪은 이슈만 간단하게 정리해본다.  </p>
+<h2 id="nginx--s-reload">nginx -s reload</h2>
+<p><code>nginx -s reload</code> 명령어는 현재 실행 중인 Nginx 프로세스에 realod 시그널을 보낸다. reload 시그널을 받은 Nginx는 프로세스를 재시작하지 않고 <code>nginx.conf</code> 파일만 다시 로드한다. 이 기능을 이용하면 <code>nginx.conf</code> 내의 리버스 프록시 포트만 바꾸고 reload 시그널을 보내는 방식으로 blue-green 배포가 가능해진다. Nginx 공식 문서에서는 이를 <a href="https://www.nginx.com/faq/how-does-zero-downtime-configuration-testingreload-in-nginx-plus-work/">zero-downtime reload</a>라고 홍보하고 있으며, 현재 연결 중인 커넥션에 영향을 주지 않고 설정 파일만을 리로드할 수 있다고 한다.  </p>
+<h2 id="진짜-zero-downtime일까?">진짜 zero-downtime일까?</h2>
+<p>Nginx가 실제로 다운타임 없이 설정 파일만을 리로드하는지 궁금해졌고, <a href="https://github.com/wg/wrk">wrk</a>를 이용하여 간단하게 테스트 해보았다. 테스트 시나리오는 다음과 같다.</p>
+<ol>
+<li>8001번 포트에 API 서버를 띄운다.</li>
+<li>Nginx는 80번 포트를 통해 실행 중이며 리버스 프록시 기능을 이용하여 클라이언트의 요청을 8001번 포트로 포워딩한다.</li>
+<li><code>wrk -t7 -c20 -d60s http://127.0.0.1:80/users</code> 명령어로 벤치마크를 실행한다.</li>
+<li>8002번 포트에서 새로운 API 서버를 띄운다.</li>
+<li>Nginx가 8002번 포트로 클라이언트의 요청을 포워딩하도록 <code>nginx.conf</code> 파일을 수정한다.</li>
+<li>Nginx에 리로드 시그널을 보낸다.</li>
+<li>벤치마크가 성공적으로 완료되었는지 확인한다.</li>
+</ol>
+<p>예상대로라면 <code>wrk</code>가 80번 포트로 보낸 모든 요청이 성공해야 한다. 하지만 결과는 그렇지 않았다. 벤치마크 결과의 <code>Socket errors</code> 항목을 보면 일부 요청에서 socket read 에러가 발생한다.</p>
+<pre><code>$ wrk -t7 -c20 -d10s http://127.0.0.1:80/users
+Running 10s test @ http://127.0.0.1:80/users
+  7 threads and 20 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    23.70ms   36.38ms 331.63ms   92.70%
+    Req/Sec   122.27     76.01   464.00     73.78%
+  8304 requests in 10.07s, 5.54MB read
+  Socket errors: connect 0, read 14, write 0, timeout 0
+Requests/sec:    824.40
+Transfer/sec:    563.52KB
+</code></pre>
+<h2 id="nginx의-reload-방식">Nginx의 reload 방식</h2>
+<p>Nginx가 리로드 시그널을 받으면 워커 프로세스들은 현재 처리 중인 http 요청까지만 응답하고 tcp 커넥션을 끊어버린다. 설정 파일이 리로드 된 후에 들어오는 http 요청은 새로운 워커 프로세스가 처리한다. <code>wrk</code>는 tcp 커넥션을 재사용하려고 시도하므로 Nginx에 의해 끊긴 tcp 커넥션을 통해 http 요청을 생성하려 할 때 에러가 발생하게 된다. 아무리 관련 문서를 찾아 보아도 이런 상황에 대한 언급은 찾을 수 없었다. 죄다 Nginx가 zero-downtime, graceful reload를 지원한다는 블로그 포스팅뿐이었다. 내가 보기엔 전혀 graceful하지 않은 상황인데 말이다. 그리고 <code>Connection: Keep-Alive</code> 헤더를 통해 tcp 커넥션을 재사용 중인 웹 브라우저가 있는 상태에서 Nginx를 리로드하면 다운타임이 발생하지 않을까 하는 의문이 들었다.</p>
+<h2 id="http/1.1-connection-헤더">HTTP/1.1 Connection 헤더</h2>
+<blockquote>
+  <p>When a client or server wishes to time-out it SHOULD issue a graceful
+  close on the transport connection. Clients and servers SHOULD both
+  constantly watch for the other side of the transport close, and
+  respond to it as appropriate. If a client or server does not detect
+  the other side's close promptly it could cause unnecessary resource
+  drain on the network.
+  …
+  …
+  This means that clients, servers, and proxies MUST be able to recover
+  rom asynchronous close events. Client software SHOULD reopen the
+  transport connection and retransmit the aborted sequence of requests
+  without user interaction so long as the request sequence is
+  idempotent (see section 9.1.2). Non-idempotent methods or sequences
+  MUST NOT be automatically retried, although user agents MAY offer a
+  human operator the choice of retrying the request(s). Confirmation by
+  user-agent software with semantic understanding of the application
+  AY substitute for user confirmation. The automatic retry SHOULD NOT
+  be repeated if the second sequence of requests fails.  </p>
+</blockquote>
+<p><a href="https://tools.ietf.org/html/rfc2616#section-8.1">HTTP/1.1 스펙</a>에 의하면 클라이언트와 서버는 응답에 <code>Connection: Keep-Alive</code> 헤더가 존재할 경우 tcp 커넥션을 재사용해야 한다. HTTP/1.1은 <code>Connection</code> 헤더의 디폴트 값이 <code>Keep-Alive</code>이고 이는 <code>Connection</code> 헤더를 따로 설정하지 않는 한 항상 tcp 커넥션을 재사용해야 한다는 말이 된다.<br />
+또한 클라이언트와 서버는 언제든지 tcp 커넥션을 끊을 수 있다. 단 커넥션을 끊을 때에는 graceful한 방법을 이용해야 하며 이는 <code>Connection: close</code> 헤더를 통해 tcp 커넥션을 끊겠다는 사실을 명시적으로 전달해야 함을 의미한다. 하지만 스펙에서 <code>Connection: close</code> 헤더의 이용을 강제하고 있지는 않다. 그렇다면 <code>Connection: close</code> 헤더 없이 tcp 커넥션을 끊어버리면 어떻게 될까?<br />
+마찬가지로 스펙에 따르면 클라이언트와 서버는 예기치 못한 tcp 커넥션 close로부터 적절한 복구 작업을 실행해야한다. 즉 서버가 <code>Connection: close</code> 헤더 없이 일방적으로 커넥션을 끊을 경우 클라이언트(ex. 웹 브라우저)는 요청을 재시도하는 등의 액션을 취해야 한다. 복구 방법에 대한 방법이나 구현 세부 사항에 대한 부분은 스펙에서 따로 언급되지 않는다.  </p>
+<p>Nginx가 리로드 시그널을 받았을 때에 각 워커 프로세스가 요청을 추가적으로 기다렸다가 <code>Connection: close</code> 헤더를 클라이언트에 전달할 수 있긴 하지만, 이 방법은 구현이 복잡하고 리로드 시에 지연이 발생할 수 있어서 사용하지 않는다고 한다.<br />
+출처: <a href="https://trac.nginx.org/nginx/ticket/1022#comment:1">https://trac.nginx.org/nginx/ticket/1022#comment:1</a></p>
+      </div>
+      <!-- end of content -->
+
+      
+      <script src="https://utteranc.es/client.js"
+        repo="soonoo/soonoo.github.io"
+        issue-term="pathname"
+        theme="github-light"
+        crossorigin="anonymous"
+        async>
+      </script>
+    
+
+      <footer>
+        <p class='footerItem'>Made by soonoo</p>
+        <p class='footerItem'>Hosted on GitHub.com</p>
+      </footer>
+    </div>
+  </body>
+</html>

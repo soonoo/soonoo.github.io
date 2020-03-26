@@ -102,7 +102,6 @@ for(const t of Object.keys(tagsInfo)) {
     const title = `${t} 태그가 달린 글`;
     let template = readFileSync('template.html', 'utf8');
     let listHtml = '';
-    const compareDate = (a, b) => dayjs(a.date).isAfter(dayjs(b.date)) ? -1 : 1;
 
     for(const post of tagsInfo[t]) {
       listHtml += `
