@@ -1,3 +1,4 @@
+https://soonoo.me/docs/posts/2023/08/05/life-dependency.html
 https://soonoo.me/docs/posts/2021/09/05/sha256.html
 https://soonoo.me/docs/posts/2020/03/26/nginx-reload.html
 https://soonoo.me/docs/posts/2020/01/26/Go-interface-receiver-type.html

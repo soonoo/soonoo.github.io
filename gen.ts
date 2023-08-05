@@ -21,7 +21,7 @@ for(const markdownPath of readdirSync(markdownDirectory)) {
     const htmlPath = '/docs/posts/' + dayjs(createdAt).format('YYYY/MM/DD');
     const fullHtmlPath = __dirname + htmlPath;
     const fileName = markdownPath.replace('.md', '.html');
-    const revisedTags = tags.split(',').map(t => t.trim());
+    const revisedTags = (tags || "").split(',').map(t => t.trim());
 
     mkdirSync(fullHtmlPath, { recursive: true });
     let replacedHtml = template.replace('$$title', title);
